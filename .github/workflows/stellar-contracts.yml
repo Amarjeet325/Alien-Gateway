@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: stellar-contracts
+        working-directory: Alien-Gateway
 
     steps:
       - name: Checkout repository
@@ -34,8 +34,8 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            stellar-contracts/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('stellar-contracts/Cargo.lock') }}
+            Alien-Gateway/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Alien-Gateway/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
 
@@ -59,7 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: stellar-contracts
+        working-directory: Alien-Gateway
 
     steps:
       - name: Checkout repository
@@ -76,8 +76,8 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            stellar-contracts/target
-          key: ${{ runner.os }}-cargo-lint-${{ hashFiles('stellar-contracts/Cargo.lock') }}
+            Alien-Gateway/target
+          key: ${{ runner.os }}-cargo-lint-${{ hashFiles('Alien-Gateway/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-lint-
 
