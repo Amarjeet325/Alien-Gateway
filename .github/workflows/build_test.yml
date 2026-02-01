@@ -46,25 +46,3 @@ jobs:
       run: |
         source $HOME/.cargo/env
         cargo test --verbose
-
-    - name: Run tests and collect coverage data
-      run: |
-        source $HOME/.cargo/env
-        mkdir -p coverage/html
-        cargo llvm-cov test --no-report
-
-    - name: Generate coverage stats
-      run: |
-        source $HOME/.cargo/env
-        cargo llvm-cov report
-
-    - name: Generate HTML coverage report
-      run: |
-        source $HOME/.cargo/env
-        cargo llvm-cov report --html --output-dir=coverage/html
-
-    - name: Upload HTML report as artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: html-report
-        path: coverage/html/
