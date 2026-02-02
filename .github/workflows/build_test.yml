@@ -32,11 +32,6 @@ jobs:
         brew install stellar-cli
         stellar --version
 
-    - name: Install cargo-llvm-cov
-      run: |
-        source $HOME/.cargo/env
-        cargo install cargo-llvm-cov
-
     - name: Build Soroban contract
       run: |
         source $HOME/.cargo/env
