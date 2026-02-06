@@ -61,7 +61,7 @@ Alien Gateway is a **username-based crypto payment protocol** built primarily on
 
 ## 🌍 Vision
 
-**One Username. Every Blockchain.**
+**One Username. Used in Every Blockchain.**
 
 Alien Gateway makes crypto transfers simple, safe, and human-friendly.
 
