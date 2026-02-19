@@ -13,6 +13,11 @@ jobs:
   ci:
     runs-on: macos-latest
 
+    defaults:
+      run:
+        working-directory: gateway-contract   # 👈 IMPORTANT FIX
+
+
     steps:
     - uses: actions/checkout@v4
 
