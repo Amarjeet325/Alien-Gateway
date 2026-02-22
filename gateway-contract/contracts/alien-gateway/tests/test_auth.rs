@@ -3,8 +3,8 @@
 //! - Write with auth succeeds
 //! - Ownership transfer updates permissions
 
-use soroban_sdk::{testutils::Address as _, Address, Env, Symbol};
 use alien_gateway::{AddressManager, Contract, CoreContract};
+use soroban_sdk::{testutils::Address as _, Address, Env, Symbol};
 
 #[test]
 #[should_panic]
@@ -41,7 +41,9 @@ fn test_write_with_auth_succeeds() {
         AddressManager::set_master_stellar_address(env.clone(), user.clone());
     });
 
-    let master = env.as_contract(&contract_id, || AddressManager::get_master(env.clone())).unwrap();
+    let master = env
+        .as_contract(&contract_id, || AddressManager::get_master(env.clone()))
+        .unwrap();
     assert_eq!(master, user);
 }
 

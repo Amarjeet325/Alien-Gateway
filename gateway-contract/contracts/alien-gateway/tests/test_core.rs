@@ -1,5 +1,5 @@
-use soroban_sdk::{testutils::Address as _, Address, Env, Symbol};
 use alien_gateway::{Contract, CoreContract};
+use soroban_sdk::{testutils::Address as _, Address, Env, Symbol};
 
 #[test]
 fn test_successful_init() {

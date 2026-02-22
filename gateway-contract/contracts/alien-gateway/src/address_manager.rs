@@ -21,7 +21,9 @@ impl AddressManager {
         if env.storage().instance().has(&contract_core::DataKey::Owner) {
             panic!("Already initialized");
         }
-        env.storage().instance().set(&contract_core::DataKey::Owner, &owner);
+        env.storage()
+            .instance()
+            .set(&contract_core::DataKey::Owner, &owner);
     }
 
     // Helper: check owner via shared auth middleware
@@ -64,10 +66,8 @@ impl AddressManager {
             .set(&DataKey::MasterAddress, &address);
 
         // Emit Event
-        env.events().publish(
-            (MASTER_SET,),
-            address
-        );
+        #[allow(deprecated)]
+        env.events().publish((MASTER_SET,), address);
     }
 
     // Getter

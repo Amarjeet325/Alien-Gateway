@@ -37,29 +37,21 @@ impl CoreContract {
             .set(&DataKey::CreatedAt, &env.ledger().timestamp());
 
         // Emit event
+        #[allow(deprecated)]
         env.events().publish((INIT_EVENT,), (username, owner));
     }
 
     // Getters
     pub fn get_username(env: Env) -> Symbol {
-        env.storage()
-            .instance()
-            .get(&DataKey::Username)
-            .unwrap()
+        env.storage().instance().get(&DataKey::Username).unwrap()
     }
 
     pub fn get_owner(env: Env) -> Address {
-        env.storage()
-            .instance()
-            .get(&DataKey::Owner)
-            .unwrap()
+        env.storage().instance().get(&DataKey::Owner).unwrap()
     }
 
     pub fn get_created_at(env: Env) -> u64 {
-        env.storage()
-            .instance()
-            .get(&DataKey::CreatedAt)
-            .unwrap()
+        env.storage().instance().get(&DataKey::CreatedAt).unwrap()
     }
 
     /// Transfer ownership to a new address. Caller must be current owner.

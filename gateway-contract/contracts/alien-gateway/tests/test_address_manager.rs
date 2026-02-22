@@ -1,5 +1,5 @@
-use soroban_sdk::{testutils::Address as _, Address, Env};
 use alien_gateway::{AddressManager, Contract};
+use soroban_sdk::{testutils::Address as _, Address, Env};
 
 #[test]
 fn test_master_assignment() {
@@ -19,7 +19,9 @@ fn test_master_assignment() {
         AddressManager::set_master_stellar_address(env.clone(), user.clone());
     });
 
-    let master = env.as_contract(&contract_id, || AddressManager::get_master(env.clone())).unwrap();
+    let master = env
+        .as_contract(&contract_id, || AddressManager::get_master(env.clone()))
+        .unwrap();
     assert_eq!(master, user);
 }
 
@@ -48,7 +50,9 @@ fn test_switch_master() {
         AddressManager::set_master_stellar_address(env.clone(), user2.clone());
     });
 
-    let master = env.as_contract(&contract_id, || AddressManager::get_master(env.clone())).unwrap();
+    let master = env
+        .as_contract(&contract_id, || AddressManager::get_master(env.clone()))
+        .unwrap();
     assert_eq!(master, user2);
 }
 
