@@ -1,37 +1,34 @@
 use soroban_sdk::{contracttype, symbol_short, Address, Env, Symbol};
 
+use crate::contract_core;
+
 // Storage Keys
 #[contracttype]
 #[derive(Clone)]
 pub enum DataKey {
-    Owner,
     Address(Address),
     MasterAddress,
 }
 
 // Event Symbol
-const MASTER_SET: Symbol = symbol_short!("MASTER_SET");
+const MASTER_SET: Symbol = symbol_short!("MSTR_SET");
 
 pub struct AddressManager;
 
 impl AddressManager {
-    // Initialize contract with owner
+    // Initialize contract with owner (sets shared owner for auth middleware)
     pub fn init(env: Env, owner: Address) {
-        if env.storage().instance().has(&DataKey::Owner) {
+        if env.storage().instance().has(&contract_core::DataKey::Owner) {
             panic!("Already initialized");
         }
-        env.storage().instance().set(&DataKey::Owner, &owner);
+        env.storage()
+            .instance()
+            .set(&contract_core::DataKey::Owner, &owner);
     }
 
-    // Helper: check owner
+    // Helper: check owner via shared auth middleware
     fn require_owner(env: &Env) {
-        let owner: Address = env
-            .storage()
-            .instance()
-            .get(&DataKey::Owner)
-            .unwrap();
-
-        owner.require_auth();
+        contract_core::auth::require_owner(env);
     }
 
     // Helper: check address exists
@@ -69,10 +66,8 @@ impl AddressManager {
             .set(&DataKey::MasterAddress, &address);
 
         // Emit Event
-        env.events().publish(
-            (MASTER_SET,),
-            address
-        );
+        #[allow(deprecated)]
+        env.events().publish((MASTER_SET,), address);
     }
 
     // Getter
