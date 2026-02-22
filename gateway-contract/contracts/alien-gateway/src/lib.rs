@@ -1,6 +1,12 @@
 #![no_std]
 use soroban_sdk::{contract, contractimpl, vec, Env, String, Vec};
 
+pub mod address_manager;
+pub mod contract_core;
+
+pub use address_manager::AddressManager;
+pub use contract_core::CoreContract;
+
 #[contract]
 pub struct Contract;
 
