@@ -41,6 +41,7 @@ template UsernameHash() {
     username_hash <== finalHash.out;
 }
 
+
 component main = UsernameHash();
 
 pragma circom 2.0.0;
@@ -55,4 +56,5 @@ template UsernameHasher() {
     poseidon.inputs[0] <== username;
     hash <== poseidon.out;
 }
+
 
