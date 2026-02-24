@@ -32,7 +32,8 @@ impl Registration {
 
         // Emit registration event
         #[allow(deprecated)]
-        env.events().publish((REGISTER_EVENT,), (commitment, caller));
+        env.events()
+            .publish((REGISTER_EVENT,), (commitment, caller));
     }
 
     /// Get the owner address for a given commitment.
