@@ -44,7 +44,7 @@ pub enum ResolverError {
 #[contractimpl]
 impl Contract {
     // Register commitment → wallet (+ optional memo)
-    pub fn register(env: Env, commitment: BytesN<32>, wallet: Address, memo: Option<u64>) {
+    pub fn register_resolver(env: Env, commitment: BytesN<32>, wallet: Address, memo: Option<u64>) {
         let data = ResolveData { wallet, memo };
 
         env.storage()
@@ -54,11 +54,9 @@ impl Contract {
 
     // Resolve commitment → wallet (+ memo)
     pub fn resolve(env: Env, commitment: BytesN<32>) -> ResolveData {
-        match env
-            .storage()
-            .persistent()
-            .get::<_, ResolveData>(&DataKey::Resolver(commitment.clone()))
-        {
+        let key = DataKey::Resolver(commitment);
+
+        match env.storage().persistent().get::<DataKey, ResolveData>(&key) {
             Some(data) => data,
             None => panic_with_error!(&env, ResolverError::NotFound),
         }

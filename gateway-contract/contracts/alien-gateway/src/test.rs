@@ -15,7 +15,7 @@ fn test_resolve_found_without_memo() {
 
     let wallet = <Address as AddressTestUtils>::generate(&env);
 
-    client.register(&commitment, &wallet, &None);
+    client.register_resolver(&commitment, &wallet, &None);
 
     let result = client.resolve(&commitment);
 
@@ -34,14 +34,13 @@ fn test_resolve_found_with_memo() {
 
     let wallet = <Address as AddressTestUtils>::generate(&env);
 
-    client.register(&commitment, &wallet, &Some(12345));
+    client.register_resolver(&commitment, &wallet, &Some(12345));
 
     let result = client.resolve(&commitment);
 
     assert_eq!(result.wallet, wallet);
     assert_eq!(result.memo.unwrap(), 12345);
 }
-
 #[test]
 #[should_panic]
 fn test_resolve_not_found() {
