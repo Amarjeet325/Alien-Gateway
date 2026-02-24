@@ -1,22 +1,74 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, vec, Env, String, Vec};
+
+use soroban_sdk::{
+    contract, contractimpl, contracttype, contracterror,
+    Env, BytesN, Address, panic_with_error
+};
 
 #[contract]
 pub struct Contract;
 
-// This is a sample contract. Replace this placeholder with your own contract logic.
-// A corresponding test example is available in `test.rs`.
 //
-// For comprehensive examples, visit <https://github.com/stellar/soroban-examples>.
-// The repository includes use cases for the Stellar ecosystem, such as data storage on
-// the blockchain, token swaps, liquidity pools, and more.
+// ---------------- STORAGE KEY ----------------
 //
-// Refer to the official documentation:
-// <https://developers.stellar.org/docs/build/smart-contracts/overview>.
+
+#[contracttype]
+pub enum DataKey {
+    Resolver(BytesN<32>),
+}
+
+//
+// ---------------- STORED VALUE ----------------
+//
+
+#[contracttype]
+#[derive(Clone)]
+pub struct ResolveData {
+    pub wallet: Address,
+    pub memo: Option<u64>,
+}
+
+//
+// ---------------- ERRORS ----------------
+//
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum ResolverError {
+    NotFound = 1,
+}
+
+//
+// ---------------- CONTRACT IMPLEMENTATION ----------------
+//
+
 #[contractimpl]
 impl Contract {
-    pub fn hello(env: Env, to: String) -> Vec<String> {
-        vec![&env, String::from_str(&env, "Hello"), to]
+
+    // Register commitment → wallet (+ optional memo)
+    pub fn register(
+        env: Env,
+        commitment: BytesN<32>,
+        wallet: Address,
+        memo: Option<u64>,
+    ) {
+        let data = ResolveData { wallet, memo };
+
+        env.storage()
+            .persistent()
+            .set(&DataKey::Resolver(commitment), &data);
+    }
+
+    // Resolve commitment → wallet (+ memo)
+    pub fn resolve(env: Env, commitment: BytesN<32>) -> ResolveData {
+        match env
+            .storage()
+            .persistent()
+            .get::<_, ResolveData>(&DataKey::Resolver(commitment.clone()))
+        {
+            Some(data) => data,
+            None => panic_with_error!(&env, ResolverError::NotFound),
+        }
     }
 }
 
