@@ -4,16 +4,22 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "compile": "cd scripts && chmod +x compile.sh && ./compile.sh",
-    "compile:all": "npm run compile:username_hash && npm run compile:merkle_path && npm run compile:merkle_inclusion && npm run compile:merkle_update && npm run compile:username_merkle",
-    "compile:hello": "mkdir -p build && circom circuits/hello.circom --r1cs --wasm --sym -o build -l node_modules",
-    "compile:username_hash": "mkdir -p build && $(which circom) circuits/username_hash.circom --r1cs --wasm --sym -o build -l node_modules",
-    "compile:merkle_path": "mkdir -p build && circom circuits/merkle/merkle_path.circom --r1cs --wasm --sym -o build -l node_modules",
-    "compile:merkle_inclusion": "mkdir -p build && circom circuits/merkle/merkle_inclusion.circom --r1cs --wasm --sym -o build -l node_modules",
-    "compile:merkle_update": "mkdir -p build && circom circuits/merkle_update.circom --r1cs --wasm --sym -o build -l node_modules",
-    "compile:username_merkle": "mkdir -p build && circom circuits/username_merkle.circom --r1cs --wasm --sym -o build -l node_modules"
-  },
+  "test": "echo \"Error: no test specified\" && exit 1",  
+
+  "setup": "cd scripts && chmod +x trusted-setup.sh && ./trusted-setup.sh",
+
+  "compile": "cd scripts && chmod +x compile.sh && ./compile.sh",
+
+  "compile:all": "npm run compile:merkle_inclusion && npm run compile:merkle_update && npm run compile:username_merkle",
+
+  "compile:merkle_inclusion": "mkdir -p build/merkle_inclusion/wasm && circom circuits/merkle/merkle_inclusion.circom --r1cs --sym -o build/merkle_inclusion -l node_modules && circom circuits/merkle/merkle_inclusion.circom --wasm -o build/merkle_inclusion/wasm -l node_modules",
+
+  "compile:merkle_update": "mkdir -p build/merkle_update/wasm && circom circuits/merkle_update.circom --r1cs --sym -o build/merkle_update -l node_modules && circom circuits/merkle_update.circom --wasm -o build/merkle_update/wasm -l node_modules",
+
+  "compile:username_merkle": "mkdir -p build/username_merkle/wasm && circom circuits/username_merkle.circom --r1cs --sym -o build/username_merkle -l node_modules && circom circuits/username_merkle.circom --wasm -o build/username_merkle/wasm -l node_modules"
+
+  
+},
   "keywords": [],
   "author": "alien-protocol",
   "license": "ISC",

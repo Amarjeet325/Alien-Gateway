@@ -5,6 +5,4 @@ use soroban_sdk::{contract, contractimpl};
 pub struct AuctionContract;
 
 #[contractimpl]
-impl AuctionContract {
-
-}
+impl AuctionContract {}

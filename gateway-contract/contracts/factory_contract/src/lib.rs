@@ -5,6 +5,4 @@ use soroban_sdk::{contract, contractimpl};
 pub struct FactoryContract;
 
 #[contractimpl]
-impl FactoryContract {
-
-}
+impl FactoryContract {}

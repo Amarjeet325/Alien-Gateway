@@ -3,7 +3,6 @@ use soroban_sdk::{contracttype, symbol_short, Address, Env, Symbol};
 use crate::contract_core;
 use crate::types::AddressMetadata;
 
-// Storage Keys
 #[contracttype]
 #[derive(Clone)]
 pub enum DataKey {
@@ -12,7 +11,6 @@ pub enum DataKey {
     StellarAddress(Address),
 }
 
-// Event Symbols
 const MASTER_SET: Symbol = symbol_short!("MSTR_SET");
 const ADDR_ADDED: Symbol = symbol_short!("ADDR_ADD");
 
@@ -29,19 +27,16 @@ impl AddressManager {
             .set(&contract_core::DataKey::Owner, &owner);
     }
 
-    // Helper: check owner via shared auth middleware
     fn require_owner(env: &Env) {
         contract_core::auth::require_owner(env);
     }
 
-    // Helper: check address exists
     fn address_exists(env: &Env, address: &Address) -> bool {
         env.storage()
             .instance()
             .has(&DataKey::Address(address.clone()))
     }
 
-    // Optional helper to register address
     pub fn register_address(env: Env, address: Address) {
         Self::require_owner(&env);
         env.storage()
@@ -49,7 +44,6 @@ impl AddressManager {
             .set(&DataKey::Address(address.clone()), &true);
     }
 
-    // ✅ Main Function
     pub fn set_master_stellar_address(env: Env, address: Address) {
         Self::require_owner(&env);
 

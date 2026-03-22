@@ -25,10 +25,16 @@ jobs:
         cache-dependency-path: zk/package-lock.json
 
     - name: Install Rust (required for circom)
-      uses: actions-rs/toolchain@v1
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Cache circom build
+      uses: actions/cache@v4
       with:
-        toolchain: stable
-        override: true
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          ~/circom/target
+        key: ${{ runner.os }}-circom
 
     - name: Install circom
       run: |
@@ -53,21 +59,23 @@ jobs:
 
     - name: Compile circuits
       run: |
-        # Use cargo-installed circom
         export PATH="$HOME/.cargo/bin:$PATH"
-        which circom
-        # Compile hello circuit (working)
-        npm run compile:hello
-        # Note: Other circuits need fixes:
-        # - username_hash, merkle_path, etc. need component main declarations
-        # - Some may have incorrect include paths
-        # TODO: Fix remaining circuits in follow-up PR
+        chmod +x scripts/compile.sh
+        bash scripts/compile.sh
 
     - name: Verify circuit compilation
       run: |
-        echo "✅ All circuits compiled successfully"
-        echo "Compiled circuits:"
-        ls -lh build/ | grep -E '\.(r1cs|wasm|sym)$' || true
-        echo ""
-        echo "Circuit directories:"
-        find build -type d -name "*_js" | head -10
+        for circuit in merkle_inclusion merkle_update username_merkle; do
+          echo "── $circuit"
+          ls -lh build/$circuit/$circuit.r1cs
+          ls -lh build/$circuit/$circuit.sym
+          ls -lh build/$circuit/wasm/${circuit}_js/$circuit.wasm
+        done
+        echo "✔ All circuits verified"
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: zk-build
+        path: zk/build/
+        retention-days: 7

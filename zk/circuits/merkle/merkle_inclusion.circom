@@ -4,7 +4,7 @@ include "merkle_path.circom";
 
 // Merkle Inclusion Proof Circuit
 template MerkleInclusionProof(levels) {
-    signal input username; // private username
+    signal input username[32]; // private username
     signal input pathElements[levels];
     signal input pathIndices[levels];
     signal input root; // expected root
@@ -13,7 +13,7 @@ template MerkleInclusionProof(levels) {
     signal output isValid;
 
     component leafGen = UsernameLeaf();
-    leafGen.username <== username;
+    for (var i = 0; i < 32; i++) { leafGen.username[i] <== username[i]; }
 
     component pathVerifier = MerklePathVerifier(levels);
     pathVerifier.leaf <== leafGen.leaf;
