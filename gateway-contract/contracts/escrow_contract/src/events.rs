@@ -1,4 +1,14 @@
-use soroban_sdk::{symbol_short, BytesN, Env};
+use soroban_sdk::{contracttype, symbol_short, BytesN, Env};
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SchedPayEvent {
+    pub payment_id: u32,
+    pub from: BytesN<32>,
+    pub to: BytesN<32>,
+    pub amount: i128,
+    pub release_at: u64,
+}
 
 pub struct EscrowEvents;
 
@@ -12,6 +22,16 @@ impl EscrowEvents {
         release_at: u64,
     ) {
         let topics = (symbol_short!("SCHED_PAY"), payment_id);
-        env.events().publish(topics, (from, to, amount, release_at));
+        #[allow(deprecated)]
+        env.events().publish(
+            topics,
+            SchedPayEvent {
+                payment_id,
+                from,
+                to,
+                amount,
+                release_at,
+            },
+        );
     }
 }
