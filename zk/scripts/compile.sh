@@ -17,6 +17,7 @@ NODE_MODULES="$ZK_DIR/node_modules"
 CIRCUITS=(
   "merkle_inclusion|merkle/merkle_inclusion.circom"
   "merkle_update|merkle_update.circom"
+  "merkle_update_proof|merkle/merkle_update_proof.circom"
   "username_merkle|username_merkle.circom"
 )
 
