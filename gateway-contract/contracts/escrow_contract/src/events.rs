@@ -1,4 +1,4 @@
-use soroban_sdk::{contractevent, BytesN, Env};
+use soroban_sdk::{contractevent, Address, BytesN, Env};
 
 /// Event emitted when a new payment is scheduled.
 #[contractevent]
@@ -32,6 +32,19 @@ pub struct PayExecEvent {
     pub amount: i128,
 }
 
+/// Event emitted when a new vault is created.
+#[contractevent]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct VaultCrtEvent {
+    /// The commitment identifier of the vault being created.
+    #[topic]
+    pub commitment: BytesN<32>,
+    /// The asset token associated with this vault.
+    pub token: Address,
+    /// The owner address of this vault.
+    pub owner: Address,
+}
+
 /// Helper for emitting contract events.
 pub struct Events;
 
@@ -62,6 +75,16 @@ impl Events {
             from,
             to,
             amount,
+        }
+        .publish(env);
+    }
+
+    /// Emits a `VaultCrtEvent` to the host.
+    pub fn vault_crt(env: &Env, commitment: BytesN<32>, token: Address, owner: Address) {
+        VaultCrtEvent {
+            commitment,
+            token,
+            owner,
         }
         .publish(env);
     }

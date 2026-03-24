@@ -14,17 +14,92 @@ mod test;
 use crate::errors::EscrowError;
 use crate::events::Events;
 use crate::storage::{
-    increment_payment_id, read_vault_config, read_vault_state,
-    write_scheduled_payment, write_vault_state,
+    increment_payment_id, read_registration_contract, read_vault_config, read_vault_state,
+    write_registration_contract, write_scheduled_payment, write_vault_config, write_vault_state,
 };
-use crate::types::{DataKey, ScheduledPayment};
-use soroban_sdk::{contract, contractimpl, panic_with_error, token, Address, BytesN, Env};
+use crate::types::{DataKey, ScheduledPayment, VaultConfig, VaultState};
+use soroban_sdk::{
+    contract, contractimpl, panic_with_error, token, vec, Address, BytesN, Env, IntoVal, Symbol,
+};
 
 #[contract]
 pub struct EscrowContract;
 
 #[contractimpl]
 impl EscrowContract {
+    /// Initializes the contract by storing the Registration contract address.
+    ///
+    /// ### Arguments
+    /// - `registration_contract`: The address of the deployed Registration contract.
+    ///
+    /// ### Errors
+    /// - `AlreadyInitialized`: If the Registration contract address is already set.
+    pub fn initialize(env: Env, registration_contract: Address) {
+        if read_registration_contract(&env).is_some() {
+            panic_with_error!(&env, EscrowError::AlreadyInitialized);
+        }
+        write_registration_contract(&env, &registration_contract);
+    }
+
+    /// Creates a new vault for a registered commitment.
+    ///
+    /// The owner is resolved by calling `get_owner` on the Registration contract.
+    /// The caller must be the registered owner of the commitment.
+    ///
+    /// ### Arguments
+    /// - `commitment`: The BytesN<32> identity commitment (Poseidon hash of username).
+    /// - `token`: The Stellar asset address this vault will hold.
+    ///
+    /// ### Errors
+    /// - `CommitmentNotRegistered`: If no owner is found for the commitment.
+    /// - `VaultAlreadyExists`: If a vault already exists for this commitment.
+    pub fn create_vault(env: Env, commitment: BytesN<32>, token: Address) {
+        // 1. Load Registration contract address (must be initialized first).
+        let registration = read_registration_contract(&env)
+            .unwrap_or_else(|| panic_with_error!(&env, EscrowError::CommitmentNotRegistered));
+
+        // 2. Cross-contract call: resolve owner from Registration contract.
+        let owner: Option<Address> = env.invoke_contract(
+            &registration,
+            &Symbol::new(&env, "get_owner"),
+            vec![&env, commitment.clone().into_val(&env)],
+        );
+        let owner =
+            owner.unwrap_or_else(|| panic_with_error!(&env, EscrowError::CommitmentNotRegistered));
+
+        // 3. Authenticate: the resolved owner must sign this transaction.
+        owner.require_auth();
+
+        // 4. Existence guard: reject if a vault already exists for this commitment.
+        if read_vault_config(&env, &commitment).is_some() {
+            panic_with_error!(&env, EscrowError::VaultAlreadyExists);
+        }
+
+        // 5. Store immutable vault configuration.
+        write_vault_config(
+            &env,
+            &commitment,
+            &VaultConfig {
+                owner: owner.clone(),
+                token: token.clone(),
+                created_at: env.ledger().timestamp(),
+            },
+        );
+
+        // 6. Store initial mutable vault state.
+        write_vault_state(
+            &env,
+            &commitment,
+            &VaultState {
+                balance: 0,
+                is_active: true,
+            },
+        );
+
+        // 7. Emit VAULT_CRT event with fields in order: (commitment, token, owner).
+        Events::vault_crt(&env, commitment, token, owner);
+    }
+
     /// Schedules a payment from one vault to another.
     ///
     /// Funds are reserved in the source vault immediately upon scheduling.

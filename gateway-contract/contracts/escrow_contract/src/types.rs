@@ -14,6 +14,8 @@ pub enum DataKey {
     PaymentCounter,
     /// Key for an auto-payment rule, indexed by the source vault's commitment.
     AutoPay(BytesN<32>),
+    /// Key for the Registration contract address stored in instance storage.
+    RegistrationContract,
 }
 
 /// Immutable configuration for a vault. Written once at creation, never mutated.
