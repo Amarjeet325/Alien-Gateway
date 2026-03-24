@@ -9,7 +9,10 @@ pub mod types;
 #[cfg(test)]
 mod test;
 
-use soroban_sdk::{contract, contracterror, contractimpl, contracttype, panic_with_error, Address, Bytes, BytesN, Env};
+use soroban_sdk::{
+    contract, contracterror, contractimpl, contracttype, panic_with_error, Address, Bytes, BytesN,
+    Env,
+};
 
 use address_manager::AddressManager;
 use registration::Registration;
