@@ -1,10 +1,13 @@
 #![cfg(test)]
 
 use crate::smt_root::SmtRoot;
-use crate::types::{ChainType, PublicSignals};
+use crate::types::{AddressMetadata, ChainType, PublicSignals};
 use crate::{Contract, ContractClient};
+use escrow_contract::types::{
+    AutoPay, ScheduledPayment as EscrowScheduledPayment, VaultConfig, VaultState,
+};
 use soroban_sdk::testutils::{Address as _, Events};
-use soroban_sdk::{Address, Bytes, BytesN, Env};
+use soroban_sdk::{contracttype, Address, Bytes, BytesN, Env, Symbol};
 
 fn setup(env: &Env) -> (Address, ContractClient<'_>) {
     let contract_id = env.register(Contract, ());
@@ -28,6 +31,112 @@ fn commitment(env: &Env, seed: u8) -> BytesN<32> {
 
 fn dummy_proof(env: &Env) -> Bytes {
     Bytes::from_slice(env, &[0u8; 64])
+}
+
+#[contracttype]
+#[derive(Clone)]
+enum RoundtripKey {
+    AddressMetadata,
+    VaultConfig,
+    VaultState,
+    ScheduledPayment,
+    AutoPay,
+}
+
+// ── contracttype roundtrip tests ─────────────────────────────────────────────
+
+#[test]
+fn test_address_metadata_roundtrip() {
+    let env = Env::default();
+    let (contract_id, _) = setup(&env);
+    let key = RoundtripKey::AddressMetadata;
+    let label = Symbol::new(&env, "primary");
+    let metadata = AddressMetadata {
+        label: label.clone(),
+    };
+
+    let stored = env.as_contract(&contract_id, || {
+        env.storage().persistent().set(&key, &metadata);
+        env.storage().persistent().get::<_, AddressMetadata>(&key)
+    });
+    assert_eq!(stored.map(|item| item.label), Some(label));
+}
+
+#[test]
+fn test_vault_config_roundtrip() {
+    let env = Env::default();
+    let (contract_id, _) = setup(&env);
+    let key = RoundtripKey::VaultConfig;
+    let config = VaultConfig {
+        owner: Address::generate(&env),
+        token: Address::generate(&env),
+        created_at: 1_729_000_001,
+    };
+
+    let stored = env.as_contract(&contract_id, || {
+        env.storage().persistent().set(&key, &config);
+        env.storage().persistent().get::<_, VaultConfig>(&key)
+    });
+    assert_eq!(stored, Some(config));
+}
+
+#[test]
+fn test_vault_state_roundtrip() {
+    let env = Env::default();
+    let (contract_id, _) = setup(&env);
+    let key = RoundtripKey::VaultState;
+    let state = VaultState {
+        balance: 5_000,
+        is_active: true,
+    };
+
+    let stored = env.as_contract(&contract_id, || {
+        env.storage().persistent().set(&key, &state);
+        env.storage().persistent().get::<_, VaultState>(&key)
+    });
+    assert_eq!(stored, Some(state));
+}
+
+#[test]
+fn test_scheduled_payment_roundtrip() {
+    let env = Env::default();
+    let (contract_id, _) = setup(&env);
+    let key = RoundtripKey::ScheduledPayment;
+    let payment = EscrowScheduledPayment {
+        from: BytesN::from_array(&env, &[7u8; 32]),
+        to: BytesN::from_array(&env, &[8u8; 32]),
+        token: Address::generate(&env),
+        amount: 900,
+        release_at: 3_600,
+        executed: false,
+    };
+
+    let stored = env.as_contract(&contract_id, || {
+        env.storage().persistent().set(&key, &payment);
+        env.storage().persistent().get::<_, EscrowScheduledPayment>(&key)
+    });
+    assert_eq!(stored, Some(payment));
+}
+
+#[test]
+fn test_auto_pay_roundtrip() {
+    let env = Env::default();
+    let (contract_id, _) = setup(&env);
+    let key = RoundtripKey::AutoPay;
+    let rule = AutoPay {
+        from: BytesN::from_array(&env, &[9u8; 32]),
+        to: BytesN::from_array(&env, &[10u8; 32]),
+        token: Address::generate(&env),
+        amount: 250,
+        interval: 86_400,
+        last_paid: 0,
+    };
+
+    let stored = env.as_contract(&contract_id, || {
+        env.storage().persistent().set(&key, &rule);
+        env.storage().persistent().get::<_, AutoPay>(&key)
+    });
+    assert_eq!(stored, Some(rule));
 }
 
 // ── resolver / memo tests ─────────────────────────────────────────────────────
