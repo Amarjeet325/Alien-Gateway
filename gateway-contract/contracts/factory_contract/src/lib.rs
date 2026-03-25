@@ -64,6 +64,14 @@ impl FactoryContract {
         get_username_record(&env, &username_hash)
     }
 
+    /// Returns the owner of a deployed username, or `None` if not registered.
+    ///
+    /// **Complexity**: O(1) — single persistent storage lookup.
+    /// **Auth**: none — read-only, safe for public polling.
+    pub fn get_username_owner(env: Env, username_hash: BytesN<32>) -> Option<Address> {
+        get_username_record(&env, &username_hash).map(|r| r.owner)
+    }
+
     pub fn get_auction_contract(env: Env) -> Option<Address> {
         get_auction_contract(&env)
     }

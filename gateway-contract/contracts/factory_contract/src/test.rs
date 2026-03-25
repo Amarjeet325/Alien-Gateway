@@ -138,3 +138,34 @@ fn non_registered_auction_auth_is_rejected() {
     assert!(result.is_err());
     assert_ne!(wrong_caller, auction_contract);
 }
+
+#[test]
+fn get_username_owner_returns_owner_after_deploy() {
+    let env = Env::default();
+    let (factory_id, factory, auction_contract, _) = setup_factory(&env);
+    let owner = Address::generate(&env);
+    let hash = username_hash(&env);
+    let deploy_args: Vec<Val> = (hash.clone(), owner.clone()).into_val(&env);
+
+    env.mock_auths(&[MockAuth {
+        address: &auction_contract,
+        invoke: &MockAuthInvoke {
+            contract: &factory_id,
+            fn_name: "deploy_username",
+            args: deploy_args,
+            sub_invokes: &[],
+        },
+    }]);
+    factory.deploy_username(&hash, &owner);
+
+    assert_eq!(factory.get_username_owner(&hash), Some(owner));
+}
+
+#[test]
+fn get_username_owner_returns_none_for_unregistered_hash() {
+    let env = Env::default();
+    let (_, factory, _, _) = setup_factory(&env);
+    let unknown_hash = BytesN::from_array(&env, &[0xFF; 32]);
+
+    assert_eq!(factory.get_username_owner(&unknown_hash), None);
+}
