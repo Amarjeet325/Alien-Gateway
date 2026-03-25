@@ -809,8 +809,8 @@ fn test_invalid_cosmos_address_too_short_panics() {
 fn test_get_root_returns_none_before_set() {
     let env = Env::default();
     let (contract_id, _) = setup(&env);
-    
-    // The client unwrap/panics if empty, so we test the underlying SmtRoot 
+
+    // The client unwrap/panics if empty, so we test the underlying SmtRoot
     // directly inside the contract context to verify it safely returns None.
     env.as_contract(&contract_id, || {
         assert_eq!(SmtRoot::get_root(env.clone()), None);
@@ -847,11 +847,11 @@ fn test_update_root_emits_event() {
     use soroban_sdk::{IntoVal, TryFromVal};
 
     assert_eq!(last_event.0, contract_id);
-    
+
     // Decode the Val back into a Symbol to properly compare it
     let event_name = Symbol::try_from_val(&env, &last_event.1.get(0).unwrap()).unwrap();
     assert_eq!(event_name, Symbol::new(&env, "ROOT_UPD"));
-    
+
     let (old, new): (Option<BytesN<32>>, BytesN<32>) = last_event.2.into_val(&env);
     assert_eq!(old, None);
     assert_eq!(new, new_root);
@@ -881,6 +881,6 @@ fn test_update_root_non_owner_panics() {
         &Symbol::new(&env, "update_smt_root"),
         (root,).into_val(&env),
     );
-    
+
     assert!(result.is_err());
 }
