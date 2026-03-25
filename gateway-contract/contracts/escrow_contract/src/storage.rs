@@ -54,9 +54,7 @@ pub fn increment_payment_id(env: &Env) -> Result<u32, EscrowError> {
 
 /// Reads the Registration contract address from instance storage.
 pub fn read_registration_contract(env: &Env) -> Option<Address> {
-    env.storage()
-        .instance()
-        .get(&DataKey::RegistrationContract)
+    env.storage().instance().get(&DataKey::RegistrationContract)
 }
 
 /// Writes the Registration contract address to instance storage.
