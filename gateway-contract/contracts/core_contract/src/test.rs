@@ -1066,9 +1066,7 @@ fn test_initialize_emits_init_event() {
     client.initialize(&owner);
 
     let events = env.events().all();
-    let has_init_event = events
-        .iter()
-        .any(|(c, _, _)| c == contract_id);
+    let has_init_event = events.iter().any(|(c, _, _)| c == contract_id);
     assert!(has_init_event);
 }
 

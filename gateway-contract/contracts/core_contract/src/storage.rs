@@ -45,11 +45,7 @@ pub fn is_initialized(env: &Env) -> bool {
     env.storage().instance().has(&DataKey::Owner)
 }
 
-pub fn set_shielded_address(
-    env: &Env,
-    username_hash: &BytesN<32>,
-    commitment: &BytesN<32>,
-) {
+pub fn set_shielded_address(env: &Env, username_hash: &BytesN<32>, commitment: &BytesN<32>) {
     env.storage()
         .persistent()
         .set(&DataKey::ShieldedAddress(username_hash.clone()), commitment);

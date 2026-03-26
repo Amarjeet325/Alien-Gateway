@@ -304,8 +304,10 @@ impl Contract {
         storage::set_shielded_address(&env, &username_hash, &address_commitment);
 
         #[allow(deprecated)]
-        env.events()
-            .publish((shielded_add_event(&env),), (username_hash, address_commitment));
+        env.events().publish(
+            (shielded_add_event(&env),),
+            (username_hash, address_commitment),
+        );
     }
 
     /// Returns the shielded address commitment for the given username hash, if any.
