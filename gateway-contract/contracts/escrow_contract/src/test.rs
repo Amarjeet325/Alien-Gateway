@@ -618,6 +618,7 @@ fn test_deposit_not_owner() {
     // Call deposit without owner's auth
     // client.deposit(&from, &100) will panic because owner.require_auth() fails.
     client.deposit(&from, &100);
+}
 
 // ─── get_balance tests ───────────────────────────────────────────────
 
