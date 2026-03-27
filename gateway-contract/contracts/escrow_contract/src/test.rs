@@ -7,8 +7,7 @@ use crate::EscrowContractClient;
 use soroban_sdk::testutils::{Address as _, Events as _, Ledger};
 use soroban_sdk::token::{Client as TokenClient, StellarAssetClient};
 use soroban_sdk::{
-    contract, contractimpl, symbol_short, Address, BytesN, Env, Error, IntoVal, Symbol,
-    TryFromVal,
+    contract, contractimpl, symbol_short, Address, BytesN, Env, Error, IntoVal, Symbol, TryFromVal,
 };
 
 // ---------------------------------------------------------------------------
@@ -487,9 +486,6 @@ fn test_execute_scheduled_not_found_panics() {
     ));
 }
 
-
-
-
 // ---------------------------------------------------------------------------
 // deposit tests
 // ---------------------------------------------------------------------------
@@ -733,7 +729,6 @@ fn test_auto_pay_multiple_vaults_no_interference() {
         assert_ne!(stored_a.amount, stored_b.amount);
         assert_ne!(stored_a.from, stored_b.from);
     });
-
 }
 
 #[test]
@@ -754,7 +749,9 @@ fn test_withdraw_reduces_balance() {
     // Withdraw 40
     client.withdraw(&commitment, &40);
 
-    let state: VaultState = env.storage().instance()
+    let state: VaultState = env
+        .storage()
+        .instance()
         .get(&DataKey::VaultState(commitment.clone()))
         .unwrap();
 
@@ -777,7 +774,9 @@ fn test_withdraw_full_balance() {
     // Withdraw full amount
     client.withdraw(&commitment, &100);
 
-    let state: VaultState = env.storage().instance()
+    let state: VaultState = env
+        .storage()
+        .instance()
         .get(&DataKey::VaultState(commitment.clone()))
         .unwrap();
 
@@ -833,12 +832,16 @@ fn test_withdraw_inactive_vault_panics() {
     client.deposit(&commitment, &100);
 
     // Simulate cancel_vault → deactivate
-    let mut state: VaultState = env.storage().instance()
+    let mut state: VaultState = env
+        .storage()
+        .instance()
         .get(&DataKey::VaultState(commitment.clone()))
         .unwrap();
 
     state.is_active = false;
-    env.storage().instance().set(&DataKey::VaultState(commitment.clone()), &state);
+    env.storage()
+        .instance()
+        .set(&DataKey::VaultState(commitment.clone()), &state);
 
     // Withdraw should fail
     client.withdraw(&commitment, &50);
