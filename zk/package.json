@@ -8,9 +8,10 @@
   "scripts": {
     "verify:proof": "ts-node scripts/verify_proof.ts",
     "test:verify": "ts-node tests/test_verify_proof.ts",
-    "test": "node tests/test_update_proof.js && node tests/test_non_inclusion_proof.js",
-    "test:update_proof": "node tests/test_update_proof.js",
-    "test:non_inclusion": "node tests/test_non_inclusion_proof.js",
+    "test:sdk": "node --test -r ts-node/register sdk/src/__tests__/proof.test.ts",
+  "test": "node tests/test_update_proof.js && node tests/test_non_inclusion_proof.js",
+  "test:update_proof": "node tests/test_update_proof.js",
+  "test:non_inclusion": "node tests/test_non_inclusion_proof.js",
 
     "setup": "cd scripts && chmod +x trusted-setup.sh && ./trusted-setup.sh",
     "compile": "cd scripts && chmod +x compile.sh && ./compile.sh",

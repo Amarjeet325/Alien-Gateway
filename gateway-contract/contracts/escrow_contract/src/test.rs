@@ -483,3 +483,118 @@ fn test_execute_scheduled_not_found_panics() {
         Err(Ok(err)) if err == Error::from_contract_error(EscrowError::PaymentNotFound as u32)
     ));
 }
+
+// ─── get_balance tests ───────────────────────────────────────────────
+
+#[test]
+fn test_get_balance_vault_not_found() {
+    let env = Env::default();
+    let (_, client, _, _, _, _) = setup_test(&env);
+
+    let unknown = BytesN::from_array(&env, &[99u8; 32]);
+    assert_eq!(client.get_balance(&unknown), None);
+}
+
+#[test]
+fn test_get_balance_after_deposit() {
+    let env = Env::default();
+    let (contract_id, client, token, _, from, _) = setup_test(&env);
+
+    let balance = 5_000i128;
+    create_vault(
+        &env,
+        &contract_id,
+        &from,
+        &Address::generate(&env),
+        &token,
+        balance,
+    );
+
+    assert_eq!(client.get_balance(&from), Some(balance));
+}
+
+#[test]
+fn test_get_balance_after_payment() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let (contract_id, client, token, _, from, to) = setup_test(&env);
+
+    let initial = 1_000i128;
+    let amount = 300i128;
+
+    create_vault(
+        &env,
+        &contract_id,
+        &from,
+        &Address::generate(&env),
+        &token,
+        initial,
+    );
+    create_vault(&env, &contract_id, &to, &Address::generate(&env), &token, 0);
+
+    env.ledger().set_timestamp(1000);
+    client.schedule_payment(&from, &to, &amount, &2000);
+
+    // Balance should reflect the reserved funds
+    assert_eq!(client.get_balance(&from), Some(initial - amount));
+}
+
+// ─── auto-pay storage isolation tests ────────────────────────────────────────
+
+/// Registers one auto-pay rule on each of two different vaults and confirms
+/// that neither rule is visible when looking up the other vault's commitment.
+/// This validates that the composite key (commitment, rule_id) fully isolates
+/// rules across vaults even when the global rule_id counter produces the same
+/// numeric ID for each.
+#[test]
+fn test_auto_pay_multiple_vaults_no_interference() {
+    use crate::storage::{read_auto_pay, write_auto_pay};
+    use crate::types::AutoPay;
+
+    let env = Env::default();
+    env.mock_all_auths();
+    let (contract_id, _client, token, _token_admin, _from, _to) = setup_test(&env);
+
+    let vault_a = BytesN::from_array(&env, &[0xAAu8; 32]);
+    let vault_b = BytesN::from_array(&env, &[0xBBu8; 32]);
+
+    let rule_a = AutoPay {
+        from: vault_a.clone(),
+        to: vault_b.clone(),
+        token: token.clone(),
+        amount: 100,
+        interval: 86_400,
+        last_paid: 0,
+    };
+    let rule_b = AutoPay {
+        from: vault_b.clone(),
+        to: vault_a.clone(),
+        token: token.clone(),
+        amount: 200,
+        interval: 43_200,
+        last_paid: 0,
+    };
+
+    // Both rules share rule_id = 0 (simulating the global counter starting at 0
+    // for each vault). The composite key must keep them isolated.
+    env.as_contract(&contract_id, || {
+        write_auto_pay(&env, &vault_a, 0, &rule_a);
+        write_auto_pay(&env, &vault_b, 0, &rule_b);
+    });
+
+    env.as_contract(&contract_id, || {
+        // Vault A's rule is retrievable under vault A's commitment.
+        let stored_a = read_auto_pay(&env, &vault_a, 0).expect("rule for vault_a not found");
+        assert_eq!(stored_a.amount, 100);
+        assert_eq!(stored_a.interval, 86_400);
+
+        // Vault B's rule is retrievable under vault B's commitment.
+        let stored_b = read_auto_pay(&env, &vault_b, 0).expect("rule for vault_b not found");
+        assert_eq!(stored_b.amount, 200);
+        assert_eq!(stored_b.interval, 43_200);
+
+        // Vault A's commitment does NOT return vault B's rule, and vice versa.
+        assert_ne!(stored_a.amount, stored_b.amount);
+        assert_ne!(stored_a.from, stored_b.from);
+    });
+}
