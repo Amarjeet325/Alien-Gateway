@@ -47,7 +47,7 @@ fn test_register_success() {
 }
 
 #[test]
-#[should_panic(expected = "Commitment already registered")]
+#[should_panic(expected = "Error(Contract, #10)")]
 fn test_register_duplicate_panics() {
     let env = Env::default();
     env.mock_all_auths();
