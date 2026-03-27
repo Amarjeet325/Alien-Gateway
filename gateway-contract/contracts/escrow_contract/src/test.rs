@@ -735,3 +735,111 @@ fn test_auto_pay_multiple_vaults_no_interference() {
     });
 
 }
+
+#[test]
+fn test_withdraw_reduces_balance() {
+    let env = Env::default();
+
+    let (contract_id, client, token, _token_admin, from, _to) = setup_test(&env);
+
+    let owner = Address::generate(&env);
+    let commitment = BytesN::random(&env);
+
+    create_vault(&env, &contract_id, &commitment, &owner, &token, 100);
+
+    // Deposit 100
+    env.mock_all_auths();
+    client.deposit(&commitment, &100);
+
+    // Withdraw 40
+    client.withdraw(&commitment, &40);
+
+    let state: VaultState = env.storage().instance()
+        .get(&DataKey::VaultState(commitment.clone()))
+        .unwrap();
+
+    assert_eq!(state.balance, 60);
+}
+#[test]
+fn test_withdraw_full_balance() {
+    let env = Env::default();
+
+    let (contract_id, client, token, _token_admin, from, _to) = setup_test(&env);
+
+    let owner = Address::generate(&env);
+    let commitment = BytesN::random(&env);
+
+    create_vault(&env, &contract_id, &commitment, &owner, &token, 100);
+
+    env.mock_all_auths();
+    client.deposit(&commitment, &100);
+
+    // Withdraw full amount
+    client.withdraw(&commitment, &100);
+
+    let state: VaultState = env.storage().instance()
+        .get(&DataKey::VaultState(commitment.clone()))
+        .unwrap();
+
+    assert_eq!(state.balance, 0);
+}
+
+#[test]
+#[should_panic(expected = "Insufficient balance")]
+fn test_withdraw_overdraft_panics() {
+    let env = Env::default();
+
+    let (contract_id, client, token, _token_admin, from, _to) = setup_test(&env);
+
+    let owner = Address::generate(&env);
+    let commitment = BytesN::random(&env);
+
+    create_vault(&env, &contract_id, &commitment, &owner, &token, 100);
+
+    env.mock_all_auths();
+    client.deposit(&commitment, &100);
+
+    // Withdraw more than balance
+    client.withdraw(&commitment, &150);
+}
+#[test]
+#[should_panic(expected = "Unauthorized")]
+fn test_withdraw_non_owner_panics() {
+    let env = Env::default();
+
+    let (contract_id, client, token, _token_admin, _from, _to) = setup_test(&env);
+
+    let owner = Address::generate(&env);
+    let commitment = BytesN::random(&env);
+
+    create_vault(&env, &contract_id, &commitment, &owner, &token, 100);
+
+    // No auth mocking → not owner
+    client.withdraw(&commitment, &50);
+}
+#[test]
+#[should_panic(expected = "Vault is not active")]
+fn test_withdraw_inactive_vault_panics() {
+    let env = Env::default();
+
+    let (contract_id, client, token, _token_admin, from, _to) = setup_test(&env);
+
+    let owner = Address::generate(&env);
+    let commitment = BytesN::random(&env);
+
+    create_vault(&env, &contract_id, &commitment, &owner, &token, 100);
+
+    env.mock_all_auths();
+    client.deposit(&commitment, &100);
+
+    // Simulate cancel_vault → deactivate
+    let mut state: VaultState = env.storage().instance()
+        .get(&DataKey::VaultState(commitment.clone()))
+        .unwrap();
+
+    state.is_active = false;
+    env.storage().instance().set(&DataKey::VaultState(commitment.clone()), &state);
+
+    // Withdraw should fail
+    client.withdraw(&commitment, &50);
+}
