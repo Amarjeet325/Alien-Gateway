@@ -103,7 +103,6 @@ impl EscrowContract {
         Events::vault_crt(&env, commitment, token, owner);
     }
 
-
     /// Deposits tokens into an existing vault and increases its internal balance.
     ///
     /// The vault owner must authorize this call. Tokens are transferred from the

@@ -493,9 +493,6 @@ fn test_execute_scheduled_not_found_panics() {
     ));
 }
 
-
-
-
 // ---------------------------------------------------------------------------
 // deposit tests
 // ---------------------------------------------------------------------------
@@ -803,5 +800,4 @@ fn test_auto_pay_multiple_vaults_no_interference() {
         assert_ne!(stored_a.amount, stored_b.amount);
         assert_ne!(stored_a.from, stored_b.from);
     });
-
 }
